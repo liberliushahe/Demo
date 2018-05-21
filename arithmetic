@@ -1,0 +1,39 @@
+//冒泡算法
+
+int[] array={ 3, 1, 6, 2, 9, 0, 7, 4, 5, 8 ,10,23,12,23,45,16,18,19,188};
+      int temp;
+     for(int i=0;i<array.length;i++){
+    	 boolean flag = true;
+    	for(int j=0;j<array.length-1-i;j++){
+    		if(array[j]>array[j+1]){
+    			temp=array[j];
+    			array[j]=array[j+1];
+    			array[j+1]=temp;
+    			flag=false;
+    		}
+    		//if(flag){
+    			//break;
+    		//}
+    	}    	
+     for (int t: array){
+    	 System.out.print(Arrays.toString(array);
+     }
+//二分法检索数据
+     int[] arr = { 30,20,50,10,80,9,7,12,100,40,8};
+     int searchWord = 20; // 所要查找的数
+     Arrays.sort(arr); //数组元素排序
+     System.out.println(Arrays.toString(arr));
+     int low = 0;
+     int high = arr.length - 1;
+     while(low<=high){
+    	 int middle=(low+high)/2;
+    	 if(searchWord==arr[middle]){
+    		System.out.println(middle);
+    	 }
+    	 if(searchWord > array[middle]){
+             low = middle + 1;
+         }
+         if(searchWord < array[middle]){
+             high = middle - 1;
+         }
+     }
