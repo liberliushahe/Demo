@@ -1,0 +1,37 @@
+import requests
+from bs4  import BeautifulSoup
+import bs4
+def printParseData(ulist,num):
+    #get list and print list
+    tplt="{:^10}\t{:^10}\t{:^10}"
+    print(tplt.format("排名", "学校","总分"),chr(12288))
+    for i in range(num):
+        u=ulist[i]
+        print(tplt.format(u[0], u[1],u[2]),chr(12288))
+
+def parseHtmlText(ulist,text):
+    soup=BeautifulSoup(text,'html.parser')
+   
+    for tr in soup.find('tbody').children:
+        if isinstance(tr, bs4.element.Tag):
+            tds=tr('td')
+            ulist.append([tds[0].string,tds[1].string,tds[3].string])
+    
+
+def getHtmlText(url):
+    try:
+        kv={'user-agent':'Mozilla/5.0'}
+        r=requests.get(url,headers=kv,timeout=30)
+        r.raise_for_status()
+        r.encoding=r.apparent_encoding
+    except:
+        print("fail")
+    return r.text
+def main():
+    ulist=[]
+    num=120
+    url="http://www.zuihaodaxue.com/zuihaodaxuepaiming2016.html"
+    text=getHtmlText(url)
+    parseHtmlText(ulist, text)
+    printParseData(ulist, num)
+main()
