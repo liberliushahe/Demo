@@ -37,7 +37,7 @@ int[] array={ 3, 1, 6, 2, 9, 0, 7, 4, 5, 8 ,10,23,12,23,45,16,18,19,188};
              high = middle - 1;
          }
      }
-  //直接选择排序
+  //直接选择排序从小到大
   import java.util.Arrays;
 
 public class SelectSort {
