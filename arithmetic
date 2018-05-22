@@ -37,3 +37,32 @@ int[] array={ 3, 1, 6, 2, 9, 0, 7, 4, 5, 8 ,10,23,12,23,45,16,18,19,188};
              high = middle - 1;
          }
      }
+  //直接选择排序
+  import java.util.Arrays;
+
+public class SelectSort {
+
+	public static void main(String[] args) {
+		// TODO Auto-generated method stub
+		//使用直接选择排序算法，比冒泡算法快一点
+       int[] arr={3, 1, 6, 2, 9, 0, 7, 4,5,8};
+       for(int i=0;i<arr.length-1;i++){
+    	   //保存最大的值
+    	   int index=0;
+    	  for(int j=0;j<arr.length-i-1;j++){
+    		  if(arr[j+1]>arr[index]){
+    			  index=j+1;
+    		  }
+    	  }
+          swap(arr,index,arr.length-i-1);
+       }
+      System.out.println(Arrays.toString(arr));
+    		   
+	}
+	public static void swap(int[] array,int i,int j){
+		int temp=array[i];
+		array[i]=array[j];
+		array[j]=temp;
+	}
+
+}
