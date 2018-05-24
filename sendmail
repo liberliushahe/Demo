@@ -237,7 +237,30 @@ public class MailUtil {
 }
 
 
-
+单元测试代码
+public class UtilTest {
+	@Test
+	public void sendEmailByQQTest1(){
+        Email email=new Email();
+        email.setCharset("UTF-8");
+        email.setSubject("文档");
+        List<String> list=new ArrayList<String>();
+        list.add("XXXXXXXXX@163.com");
+        email.setToAddress(list);
+        email.setContent("文档");
+        File file=new File("D:/XXX.doc");
+        File file1=new File("D:/XXXX.pptx");
+        System.out.println(file.exists());
+        List<File> list1=new ArrayList<File>();
+        list1.add(file);
+        list1.add(file1);
+        email.setFiles(list1);
+        MailUtil.sendMail("smtp.163.com", "XXXXXXXX@163.com", "XXXXXXX", email);
+             
+	}
+	
+	
+}
 
 
 
