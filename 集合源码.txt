@@ -1,0 +1,27 @@
+#实现HashSet类
+import java.util.HashMap;
+import java.util.Map;
+
+public class OHashSet {
+	Map map;
+	public static final Object PRESENT=new Object();
+	public OHashSet(){
+		map=new HashMap();
+	}
+	
+	public int size(){
+		return map.size();
+	}
+	//set的不可重复就是利用了map里面键对象的不可重复！
+	public void add(Object o){
+		map.put(o, PRESENT);
+	}
+	
+	public static void main(String[] args) {
+		// TODO Auto-generated method stub
+		OHashSet set=new OHashSet();
+		set.add(12);
+		System.out.println(set.size());
+	}
+
+}
