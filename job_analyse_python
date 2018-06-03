@@ -1,0 +1,190 @@
+#获取数据
+import requests
+import math
+import pandas as pd
+import time
+'''
+该数据可以完善为获取全国省会城市某一个职位的全部信息
+
+
+'''
+#获取页数
+def getPageNum(total_count):
+    num=math.ceil(total_count/15)
+    if num>30:
+        return 30
+    else:
+        return num
+#解析每次获取的网页数据返回一个集合
+def parseDataPage(page_list):
+    page_list_data=[]
+    for i in page_list:
+        single_list=[]
+        single_list.append(i['companyFullName'])  
+        single_list.append(i['companyShortName'])  
+        single_list.append(i['companySize'])  
+        single_list.append(i['financeStage'])  
+        single_list.append(i['district'])  
+        single_list.append(i['positionName'])  
+        single_list.append(i['workYear'])  
+        single_list.append(i['education'])  
+        single_list.append(i['salary'])  
+        single_list.append(i['positionAdvantage'])  
+        page_list_data.append(single_list)
+    return page_list_data
+#获取拉钩数据
+def getData(url,num,keyword):
+    heads={
+        'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/66.0.3359.139 Safari/537.36',  
+        'Host':'www.lagou.com',  
+        'Referer':'https://www.lagou.com/jobs/list_%E6%95%B0%E6%8D%AE%E5%88%86%E6%9E%90?labelWords=&fromSearch=true&suginput=',  
+        'X-Anit-Forge-Code':'0',  
+        'X-Anit-Forge-Token': 'None',  
+        'X-Requested-With':'XMLHttpRequest'  
+        }
+    datas={
+         'first': 'true',  
+            'pn':num,  
+            'kd':keyword
+        }
+    result=requests.post(url,headers=heads,data=datas)
+    result.raise_for_status()
+    result.encoding='utf-8'
+    data=result.json()
+    return data
+
+
+
+
+def main():
+    url="https://www.lagou.com/jobs/positionAjax.json?px=default&city=%E5%8C%97%E4%BA%AC&needAddtionalResult=false"
+    num=1
+    page_num_data=getData(url, num)
+    #获取总页数 决定循环抓取的次数
+    total_count=page_num_data['content']['positionResult']['totalCount']
+    page_num=getPageNum(total_count)
+    #定义一个集合
+    total_data_lists=[]
+    time.sleep(20)
+    keyword='python'
+    #循环获取页面数据
+    for i in range(1,page_num+1):
+        #获取每页的数据
+        page_info=getData(url, i,keyword)
+        #解析每页的数据
+        page_list=page_info['content']['positionResult']['result']
+
+        list=parseDataPage(page_list)
+        #将解析好的数据增加到集合
+        total_data_lists+=(list)
+        
+        #打印日志
+        print('爬虫抓取第{}页，该页共有职位总数：{}'.format(i, len(list)))
+        #线程休眠,模拟人工操作
+        time.sleep(30)
+    #将抓取的数据保存到文件
+    df=pd.DataFrame(data=total_data_lists,columns=['公司全名','公司简称','公司规模','融资阶段','区域','职位名称','工作经验','学历要求','工资','职位福利']) 
+    df.to_csv('data.csv',index=False,encoding='utf-8')
+    print("数据已经保存在当前路径！")  
+
+main()
+
+#分析数据
+'''
+Created on 2018年6月1日
+数据分析
+@author: liushahe
+'''
+import pandas as pd
+import matplotlib.pyplot as plt
+from pylab import mpl
+from wordcloud import  WordCloud
+import jieba
+import imread
+import statsmodels.api as sm
+#matplotlib显示中文
+#mpl.rcParams['font.sans-serif'] = ['SimHei'] # 指定默认字体
+#mpl.rcParams['font.sans-serif'] = u'SimHei'
+#mpl.rcParams['axes.unicode_minus'] = False # 解决保存图像是负号'-'显示为方块的问题
+#读取数据
+df=pd.read_csv('data.csv',encoding='utf-8')
+#数据清理 去除实习岗位
+df.drop(df[df['职位名称'].str.contains('实习')].index, inplace=True)
+pattern='\d+'
+df['工作年限']=df['工作经验'].str.findall(pattern)
+avg_work_year=[]
+for i in df['工作年限']:
+    if len(i)==0:
+        avg_work_year.append(0)
+    elif len(i)==1:
+        avg_work_year.append(int(''.join(i)))
+    else:
+        num_list=[int(j) for j in i]
+        avg_year=sum(num_list)/2
+        avg_work_year.append(avg_year)
+        
+df['经验']=avg_work_year
+
+#获取工资水平
+df['salary']=df['工资'].str.findall(pattern)
+avg_salary=[]
+for k in df['salary']:
+    int_list=[int(n) for n in k]
+    avg_wage=int_list[0]+(int_list[1]-int_list[0])/4
+    avg_salary.append(avg_wage)
+df['月工资']=avg_salary
+#保存处理完成的数据
+df.to_csv('draft.csv',index=False,encoding='utf-8')
+print('python工资描述：\n{}'.format(df['月工资'].describe()))
+#绘制频率直方图保存
+plt.hist(df['月工资'],bins=12)
+plt.xlabel('工资（千元)')
+plt.ylabel('频数')
+plt.title("工资直方图")
+plt.savefig('histogram.jpg')
+plt.show()
+#将区域展示为饼图
+count = df['区域'].value_counts()  
+plt.pie(count, labels = count.keys(),labeldistance=1.4,autopct='%2.1f%%')  
+plt.axis('equal')  # 使饼图为正圆形  
+plt.legend(loc='upper left', bbox_to_anchor=(-0.1, 1))  
+plt.savefig('pie_chart.jpg')  
+plt.show()  
+#福利通过词云展示
+text=''
+for line in df['职位福利']:
+    text+=line
+#使用jieba将字符串分割为单词列表
+cut_text=''.join(jieba.cut(text))
+#print(cut_text)
+color_mask=plt.imread('timg.jpg')
+cloud=WordCloud(
+    font_path='simhei.ttf',
+    background_color='white',
+    mask=color_mask,
+    max_words=1000,
+    max_font_size=100
+    )
+word_cloud=cloud.generate_from_text(cut_text)
+word_cloud.to_file('word_cloud.jpg')
+plt.imshow(word_cloud)
+plt.axis('off')
+plt.show()
+#统计建模 了解工资 学历 经验的关系
+df['学历要求'] = df['学历要求'].replace('不限','大专')  
+# 学历分为大专\本科\硕士,将它们设定为虚拟变量  
+dummy_edu = pd.get_dummies(df['学历要求'],prefix = '学历')  
+# 构建回归数组  
+df_with_dummy = pd.concat([df['月工资'],df['经验'],dummy_edu],axis = 1)  
+
+# 建立多元回归模型  
+y = df_with_dummy['月工资']  
+X = df_with_dummy[['经验','学历_大专','学历_本科','学历_硕士']]  
+X=sm.add_constant(X)   
+model = sm.OLS(y,X)  
+results = model.fit()  
+print('回归方程的参数：\n{}\n'.format(results.params))  
+print('回归结果：\n{}'.format(results.summary()))
+
+
+
